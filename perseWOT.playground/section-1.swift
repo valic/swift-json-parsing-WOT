@@ -1,5 +1,4 @@
 import Cocoa
-
 import XCPlayground
 XCPSetExecutionShouldContinueIndefinitely()
 
@@ -14,40 +13,43 @@ func parseJSON(inputData: NSData) -> NSDictionary{
     return boardsDictionary
 }
 
-let parseAccountID = (parseJSON(getJSON("https://api.worldoftanks.ru/wot/account/list/?application_id=c2f02a1fea169312db457a323fd41441&fields=account_id,nickname&type=exact&search=")))
-
-//println(parseAccountID)
-
-
-
-
+func parseAccountID(userName: String) -> (account_id: NSNumber, nickname: String, status: String?, codeError: Int?, message: String?, value:String?, Field:String? ) {
+    
+    var account_id:NSNumber?
+    var nickname:String?
+    var status:String?
+    var codeError: Int?
+    var message:String?
+    var value:String?
+    var field:String?
+    
+    let parseAccountID = (parseJSON(getJSON("https://api.worldoftanks.ru/wot/account/list/?application_id=c2f02a1fea169312db457a323fd41441&fields=account_id,nickname&type=exact&search=" + userName)))
+    
+    
 if let parse = parseAccountID as? [String: AnyObject] {
-    
-    var status = parse["status"] as String!
-    println(parse)
-    
-    println(status)
-    
-    if status == "ok" {
+
+    status = parse["status"] as String! // ‘ok’ — запрос выполнен успешно; ‘error’ — ошибка при выполнении запроса.
+
+if status == "ok" {
     
     if let data = parse["data"] as? [AnyObject] {
         for start in data {
-            var account_id = start["account_id"] as NSNumber // Идентификатор аккаунта игрока
-            var nickname = start["nickname"] as? NSString //Имя игрока
-            println(account_id)
-            println(nickname!)
+           account_id = start["account_id"] as? NSNumber! // Идентификатор аккаунта игрока
+           nickname = start["nickname"] as? String //Ник игрока
         }
     }
 }
-
 else
 {
     let parseError = parseAccountID["error"] as NSDictionary
     
-    var code = parseError["code"] as? Int
-    var message = parseError["message"] as? NSString
-    var value = parseError["value"] as? NSString
-    var field = parseError["field"] as? NSString
- 
+    codeError = parseError["code"] as? Int
+    message = parseError["message"] as? String
+    value = parseError["value"] as? String
+    field = parseError["field"] as? String
 }
 }
+    return (account_id!,nickname!, status, codeError, message, value, field)
+}
+
+parseAccountID("valicm").account_id
